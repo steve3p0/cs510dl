@@ -6,7 +6,7 @@ Assignment #2: LeNet-5 Cifar-10
 Steve Braich
 
 Assignment Description:
-httpS://web.cecs.pdx.edu/~singh/courses/winter21/dl/a2w21.pdf
+https://web.cecs.pdx.edu/~singh/courses/winter21/dl/a2w21.pdf
 The goal of this assignment is to gain some experience with CNNs. You will use the CIFAR-10
 dataset for all the experiments.
 
@@ -36,7 +36,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Assuming that we are on a CUDA machine, this should print a CUDA device:
 print(f"Type of Machine: {device}")
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 def imshow(img):
     img = img.cpu()
@@ -119,14 +118,6 @@ class Cifar10LeNet5(nn.Module):
         print(f"Test  Samples: {len(self.data_test)}")
         print(f"Train Samples: {len(self.data_train)}")
         print(f"Epochs:        {epochs}")
-
-        # activation hooks
-        # self.model.fc2.register_forward_hook(self.get_activation_hook('conv1'))
-        # self.model.fc2.register_forward_hook(self.get_activation_hook('pool'))
-        # self.model.fc2.register_forward_hook(self.get_activation_hook('conv2'))
-        # self.model.fc2.register_forward_hook(self.get_activation_hook('fc1'))
-        # self.model.fc2.register_forward_hook(self.get_activation_hook('fc2'))
-        # self.model.fc2.register_forward_hook(self.get_activation_hook('fc3'))
 
         for epoch in range(1, epochs + 1):
             #running_loss = 0.0
@@ -252,7 +243,7 @@ class Cifar10LeNet5(nn.Module):
         class_str = ""
         class_acc = ""
         for i in range(10):
-            class_str += f" {classes[i]}".rjust(5).ljust(10)
+            class_str += f" {self.classes[i]}".rjust(5).ljust(10)
             class_acc += f" {100 * class_correct[i] / class_total[i]:.2f}%".rjust(5).ljust(10)
         print(class_str)
         print(class_acc)
@@ -290,6 +281,8 @@ class Cifar10LeNet5(nn.Module):
         self.batch_size   = batch_size
         self.batch_scalar = batch_scalar
 
+        self.classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
         transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
         self.data_test = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
@@ -302,11 +295,6 @@ class Cifar10LeNet5(nn.Module):
         self.test_loader  = torch.utils.data.DataLoader(dataset=self.data_test,  batch_size=batch_size, shuffle=False, num_workers=num_workers)
         self.train_loader = torch.utils.data.DataLoader(dataset=self.data_train, batch_size=batch_size, shuffle=True,  num_workers=num_workers)
 
-    def get_activation_hook(self, name) -> Any:
-        def hook(model, input, output):
-            self.activation_hooks[name] = output.detach()
-
-        return hook
 
 class Cifar10Cnn5(nn.Module):
     """ Model class object that recognizes Cifar-10 images based on a 5 layer Convolutional Neural Network using
@@ -493,7 +481,7 @@ class Cifar10Cnn5(nn.Module):
         class_acc = ""
         for i in range(10):
             blah = f"classes[i]"
-            class_str += f" {classes[i]}".rjust(5).ljust(10)
+            class_str += f" {self.classes[i]}".rjust(5).ljust(10)
             class_acc += f" {100 * class_correct[i] / class_total[i]:.2f}%".rjust(5).ljust(10)
         print(class_str)
         print(class_acc)
@@ -531,6 +519,8 @@ class Cifar10Cnn5(nn.Module):
         self.stds = torch.Tensor([0.2470, 0.2435, 0.2616])
         self.stds = self.stds.unsqueeze(-1).unsqueeze(-1).expand(-1, 32, 32)
 
+        self.classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
         transform = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.RandomRotation(10),
                                          transforms.ToTensor(), transforms.Normalize(self.means, self.stds)])
 
@@ -546,3 +536,35 @@ class Cifar10Cnn5(nn.Module):
                                                         shuffle=True, num_workers=num_workers)
         self.train_loader = torch.utils.data.DataLoader(self.data_train, batch_size=self.batch_size * self.batch_scalar,
                                                         shuffle=True, num_workers=num_workers)
+
+    def pickOut(self, x, convLayer=3):
+
+        x = self.relu(self.conv1(x))
+        if convLayer == 1: return x
+        x = self.relu(self.conv2(x))
+        if convLayer == 2: return x
+        x = self.batchnorm1(self.pool(x))
+        x = self.relu(self.conv3(x))
+        if convLayer == 3: return x
+        x = self.relu(self.conv4(x))
+        if convLayer == 4: return x
+        x = self.batchnorm2(self.pool(x))
+        x = self.relu(self.conv5(x))
+        if convLayer == 5: return x
+        x = self.pool(x)
+        x = self.dropout(x.contiguous().view(-1, 128 * 4 * 4))
+        x = self.dropout(self.relu(self.fc1(x)))
+        return self.logSoftmax(self.fc2(x))
+
+    def displayConvOutputs(self, imgs):
+        for convLayer in range(5):
+            output = self.pickOut(imgs.cuda(), convLayer + 1).cpu().detach()
+            print(f"Conv layer: {convLayer + 1}")
+            dim = output.shape[1];
+            plt.figure(num=None, figsize=(10, 4 / dim * 2.5 * 16), dpi=350)
+            for i in range(dim):
+                plt.subplot(4, dim / 4, i + 1);
+                plt.axis("off");
+                plt.imshow(output[0][i])
+            plt.show()
+

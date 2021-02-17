@@ -122,18 +122,16 @@ class TestCifar10Model:
         plt.clf()
 
         # Confusion Matrix
-        confusion_matrix = torch.zeros(len(cm.classes), len(cm.classes))
+        confusion_matrix = torch.zeros(len(model.classes), len(model.classes))
         with torch.no_grad():
             for i, (images, classes) in enumerate(model.test_loader):
-                # image = image.view(image.shape[0], -1)
-                # image = image.cuda.to(device)
                 images = images.to(device)
                 outputs = model(images)
                 _, preds = torch.max(outputs, dim=1)
                 for t, p in zip(classes.view(-1), preds.view(-1)):
                     confusion_matrix[t.long(), p.long()] += 1
         plt.figure(figsize=(10, 8))
-        sns.heatmap(pd.DataFrame(np.array(confusion_matrix), columns=cm.classes, index=cm.classes), cmap='Greys', annot=True, fmt='g')
+        sns.heatmap(pd.DataFrame(np.array(confusion_matrix), columns=model.classes, index=model.classes), cmap='Greys', annot=True, fmt='g')
         plt.title(f"Confusion Matrix\n{param_title}")
         if save_to_file:
             figure_title = "CM"
@@ -142,99 +140,6 @@ class TestCifar10Model:
         if show_plot:
             plt.show()
         plt.clf()
-
-        # Feature map:
-
-        # #### STEP 1: COLLECT TEST DATA: 1 IMAGE FROM THE 1ST BATCH OF 4 FROM THE TEST SET
-        # # Gives us one mini-batch of 4 images
-        # inputs, classes = next(iter(model.test_loader))
-        # print(f"inputs.size: {inputs.size()}")  # <--- [4, 3, 32, 32]
-        #
-        # # The [0] gives is the first image in our mini-batches of 4
-        # img, label = inputs[0], classes[0]
-        # print(f"img.size: {img.size()}")
-        # print(f"label.size: {label.size()}")
-        # print(f"label: {label}")
-        # # THIS WILL SHOW THE IMAGE:
-        # cm.imshow(img)
-        # assert(label.cpu() == 6) # first image should be a frog
-        #
-        # # Prep for processing the image thru our network
-        # # What exactly does this do?
-        # img = img.unsqueeze(0)
-        # # Format for CUDA if device is CUDA
-        # img = img.to(device)
-        #
-        # #### STEP 2: Move thru our network
-        # output = model.model(img)
-        # # output = model(x)
-        # print(f"output.shape: {output.shape}")
-
-
-        # feature_map1 = model.activation_hooks['fc1']
-        # feature_map2 = model.activation_hooks['fc2']
-        # print(f"feature_map1: {feature_map1}")
-        # print(f"feature_map2: {feature_map2}")
-
-        # act_conv1 = model.activation_hooks['conv1'].squeeze()
-        # act_conv2 = model.activation_hooks['conv2'].squeeze()
-        # act_fc1   = model.activation_hooks['fc1'].squeeze()
-        # act_fc2   = model.activation_hooks['fc2'].squeeze()
-        # act_fc3   = model.activation_hooks['fc3'].squeeze()
-
-        # # Activation Hooks ##################################33
-        # act_conv1 = model.activation_hooks['conv1']
-        # act_conv2 = model.activation_hooks['conv2']
-        # act_fc1 = model.activation_hooks['fc1']
-        # act_fc2 = model.activation_hooks['fc2']
-        # act_fc3 = model.activation_hooks['fc3']
-        # print(f"act_conv1: {act_conv1} shape: {act_conv1.shape}")
-        # print(f"act_conv2: {act_conv2} shape: {act_conv2.shape}")
-        # print(f"act_fc1: {act_fc1} shape: {act_fc1.shape}")
-        # print(f"act_fc2: {act_fc2} shape: {act_fc2.shape}")
-        # print(f"act_fc3: {act_fc2} shape: {act_fc3.shape}")
-        # # Activation Hooks ##################################33
-
-        # # act = act.cpu()
-        # act = act_fc3.cpu()
-        #
-        # # cm.imshow(act)
-        # fig, axarr = plt.subplots(act.size(0))
-        # # fig = fig.cpu()
-        # # axarr = axarr.cpu()
-        # for idx in range(act.size(0)):
-        #     # act[idx] = act[idx].to(device)
-        #     act[idx] = act[idx].cpu()
-        #     # axarr[idx].cpu().imshow(act[idx]).cpu()
-        #     axarr[idx].imshow(act[idx])
-
-        # data, _ = dataset[0]
-        # data.unsqueeze_(0)
-        # output = model(data)
-        #
-        # act = activation['conv1'].squeeze()
-        # fig, axarr = plt.subplots(act.size(0))
-        # for idx in range(act.size(0)):
-        #     axarr[idx].imshow(act[idx])
-
-        # # Heat Map
-        # for i in model.model.parameters():
-        #     model.params.append(i)
-        # fig = plt.figure(figsize=(15, 7))
-        # fig.suptitle(f"Heatmap\n{param_title}", fontsize=16)
-        # for i in range(1, 11):
-        #     ax = fig.add_subplot(2, 5, i)
-        #     ax.title.set_text(cm.classes[i - 1])
-        #     # TODO:
-        #     sns.heatmap(model.params[0][i - 1, :].reshape(28, 28).detach().cpu().clone().numpy(), cbar=False)
-        # plt.tight_layout()
-        # if save_to_file:
-        #     figure_title = "Heat"
-        #     filepath = f"{folder}/{filebasename}_{figure_title}.png"
-        #     plt.savefig(filepath)
-        # if show_plot:
-        #     plt.show()
-        # plt.clf()
 
     @nottest
     def test_part1_tanh_cel(self):
@@ -261,11 +166,9 @@ class TestCifar10Model:
         momentum      = 0
 
         # Train the model
-        # model = cm.Cifar10LeNet5(loss_function=loss_function, tiny=True, batch_size=4, num_workers=0)
-        # model.train(activation=activation, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
         model = cm.Cifar10LeNet5(activation=activation, fc1_channels=fc1_channels, kernel_size=kernel_size,
                                  batch_size=batch_size, batch_scalar=batch_scalar,
-                                 tiny=tiny, num_workers=num_workers).cuda()
+                                 tiny=tiny, num_workers=num_workers).to(cm.device)
         model.fit(loss_function=loss_function, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
 
         self.display_visuals(model=model, show_plot=True, save_to_file=True, filename_prefix="part1_tanh_cel", folder=f"p1_{timestamp}")
@@ -283,8 +186,8 @@ class TestCifar10Model:
         print(f"TestCifar10Model.test_part1_tanh_mse: {timestamp_pretty}")
         print("####################################################################################################")
 
-        tiny   = False
-        epochs = 30
+        tiny   = True
+        epochs = 2
         num_workers  = 0
 
         activation = nn.Tanh()
@@ -298,12 +201,9 @@ class TestCifar10Model:
         momentum      = 0
 
         # Train the model
-        # model = cm.Cifar10LeNet5(loss_function=loss_function, tiny=True, batch_size=4, num_workers=0)
-        # # model = cm.Cifar10Model(loss_function=loss_function, tiny=False, batch_size=4, num_workers=0)
-        # model.train(activation=activation, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
         model = cm.Cifar10LeNet5(activation=activation, fc1_channels=fc1_channels, kernel_size=kernel_size,
                                  batch_size=batch_size, batch_scalar=batch_scalar,
-                                 tiny=tiny, num_workers=num_workers).cuda()
+                                 tiny=tiny, num_workers=num_workers).to(cm.device)
         model.fit(loss_function=loss_function, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
 
         self.display_visuals(model=model, show_plot=True, save_to_file=True, filename_prefix="part1_tanh_mse", folder=f"p1_{timestamp}")
@@ -321,17 +221,6 @@ class TestCifar10Model:
         print(f"TestCifar10Model.test_part1_sig_cel: {timestamp_pretty}")
         print("####################################################################################################")
 
-        # epochs = 10
-        # learn_rate = 0.001
-        # momentum = 0
-        # activation = nn.Sigmoid()
-        # loss_function = nn.CrossEntropyLoss()
-
-        # # Train the model
-        # model = cm.Cifar10LeNet5(loss_function=loss_function, tiny=True, batch_size=4, num_workers=0)
-        # # model = cm.Cifar10Model(loss_function=loss_function, tiny=False, batch_size=4, num_workers=0)
-        # model.train(activation=activation, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
-
         tiny   = True
         epochs = 2
         num_workers = 0
@@ -347,12 +236,9 @@ class TestCifar10Model:
         momentum      = 0
 
         # Train the model
-        # model = cm.Cifar10LeNet5(loss_function=loss_function, tiny=True, batch_size=4, num_workers=0)
-        # # model = cm.Cifar10Model(loss_function=loss_function, tiny=False, batch_size=4, num_workers=0)
-        # model.train(activation=activation, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
         model = cm.Cifar10LeNet5(activation=activation, fc1_channels=fc1_channels, kernel_size=kernel_size,
                                  batch_size=batch_size, batch_scalar=batch_scalar,
-                                 tiny=tiny, num_workers=num_workers).cuda()
+                                 tiny=tiny, num_workers=num_workers).to(cm.device)
         model.fit(loss_function=loss_function, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
 
         self.display_visuals(model=model, show_plot=True, save_to_file=False, filename_prefix="part1_sig_cel", folder=f"p1_{timestamp}")
@@ -371,11 +257,8 @@ class TestCifar10Model:
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print("\n\n")
 
-        epochs = 1
-        momentum = 0
-
         tiny   = True
-        epochs = 30
+        epochs = 1
         num_workers = 0
 
         kernel_size  = 5
@@ -405,13 +288,9 @@ class TestCifar10Model:
                     print("####################################################################################################")
 
                     # Train the model
-                    # model = cm.Cifar10LeNet5(loss_function=loss_function, tiny=True, batch_size=4, num_workers=0)
-                    # # model = cm.Cifar10Model(loss_function=loss_function, tiny=False, batch_size=4, num_workers=0)
-                    # model.train(activation=activation, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
-
                     model = cm.Cifar10LeNet5(activation=activation, fc1_channels=fc1_channels, kernel_size=kernel_size,
                                              batch_size=batch_size, batch_scalar=batch_scalar,
-                                             tiny=tiny, num_workers=num_workers).cuda()
+                                             tiny=tiny, num_workers=num_workers).to(cm.device)
                     model.fit(loss_function=loss_function, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
 
                     self.display_visuals(model=model, show_plot=False, save_to_file=True,
@@ -429,8 +308,8 @@ class TestCifar10Model:
         print(f"TestCifar10Model.test_part2_relu_cel_k3: {timestamp_pretty}")
         print("####################################################################################################")
 
-        tiny   = False
-        epochs = 30
+        tiny   = True
+        epochs = 2
         num_workers = 0
 
         activation   = nn.ReLU()
@@ -444,13 +323,9 @@ class TestCifar10Model:
         momentum      = 0
 
         # Train the model
-        # # model = cm.Cifar10Model(loss_function=loss_function, tiny=True, batch_size=batch_size)
-        # model = cm.Cifar10LeNet5(loss_function=loss_function, tiny=True, batch_size=batch_size, num_workers=0)
-        # # model = cm.Cifar10Model(loss_function=loss_function, tiny=False, batch_size=batch_size, num_workers=0)
-        # model.train(activation=activation, learn_rate=learn_rate, momentum=momentum, epochs=epochs, kernel_size=kernel_size, fc1_channels=64)
         model = cm.Cifar10LeNet5(activation=activation, fc1_channels=fc1_channels, kernel_size=kernel_size,
                                  batch_size=batch_size, batch_scalar=batch_scalar,
-                                 tiny=tiny, num_workers=num_workers).cuda()
+                                 tiny=tiny, num_workers=num_workers).to(cm.device)
         model.fit(loss_function=loss_function, learn_rate=learn_rate, momentum=momentum, epochs=epochs)
 
         self.display_visuals(model=model, show_plot=True, save_to_file=True, filename_prefix="part2_relu_cel_k3", folder=f"p2_{timestamp}")
@@ -467,8 +342,8 @@ class TestCifar10Model:
         print(f"TestCifar10Model.test_part3_5cnn: {timestamp_pretty}")
         print("####################################################################################################")
 
-        tiny   = False
-        epochs = 30
+        tiny   = True
+        epochs = 2
 
         batch_size   = 100
         batch_scalar = 10
@@ -481,12 +356,13 @@ class TestCifar10Model:
         loss_function = nn.NLLLoss()
 
         model = cm.Cifar10Cnn5(activation=activation, batch_size=batch_size, batch_scalar=batch_scalar,
-                               kernel_size=kernel_size, tiny=tiny, num_workers=num_workers).cuda()
+                               kernel_size=kernel_size, tiny=tiny, num_workers=num_workers).to(cm.device)
 
         model.fit(loss_function=loss_function, learn_rate=learn_rate, weight_decay=weight_decay, epochs=epochs)
-        # model.test()
 
         self.display_visuals(model=model, show_plot=True, save_to_file=True, filename_prefix="part3_5cnn", folder=f"p3_{timestamp}")
+
+        model.displayConvOutputs(torch.normal(0, 1, (1, 3, 32, 32)))
 
         elapsed = (time.time() - start)
         print(f"\nTime taken: {str(timedelta(seconds=elapsed))} Elapsed\n\n")
