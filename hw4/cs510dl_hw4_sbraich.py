@@ -23,14 +23,17 @@ Sources:
 """
 
 import numpy as np
-from sklearn.datasets import load_digits
 from time import time
 from sklearn import metrics
+from sklearn import utils
+from sklearn.datasets import load_digits
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.datasets import fetch_openml
 import matplotlib.pyplot as plt
+
 
 class Cluster():
 
@@ -54,7 +57,53 @@ class Cluster():
         self.data, self.labels = load_digits(return_X_y=True)
         (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
 
+        # self.data, self.labels = load_digits(return_X_y=True)
+        # (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
+        # X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
+
+        # data = np.empty([1000, self.data.shape[1]])
+        # for index in range(0, 9):
+        #     label_indices = np.argwhere(self.labels == index)[:100]
+        #     np.append(data, [self.data[i] for i in label_indices])
+
+        # kinda works
+        # data = np.empty(shape=[1000, self.data.shape[1]], dtype=float)
+        # labels = np.empty(shape=1000, dtype=int)
+        # for index in range(0, 10):
+        #     # label_indices = np.argwhere(self.labels == index)[:100]
+        #     label_indices = np.argwhere(self.labels == index)
+        #     np.append(data, self.data[label_indices])
+        #     np.append(labels, np.full(shape=100, fill_value=index))
+
+        # data = np.empty(shape=[1000, self.data.shape[1]], dtype=float)
+        # labels = np.empty(shape=1000, dtype=int)
+
+        # data = []
+        # labels = []
+        # for index in range(0, 10):
+        #     # label_indices = np.argwhere(self.labels == index)[:100]
+        #     label_indices = np.argwhere(self.labels == index)
+        #     data.append(self.data[label_indices])
+        #     labels.append(np.full(shape=100, fill_value=index))
+
+        data = []
+        labels = []
+        for index in range(0, 10):
+            # label_indices = np.argwhere(self.labels == index)[:100]
+            label_indices = np.argwhere(self.labels == index)[:100]
+            data.extend(self.data[label_indices])
+            labels.extend(np.full(shape=100, fill_value=index))
+
+        data = np.array(data)
+        labels = np.array(labels)
+
+        data, labels = utils.shuffle(data, labels)
+        # [ blah for x in self.labels[i] for  ]
+        # [ index for index in self.labels if self.labels == 0]
+
+
         print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
+
 
     def bench_k_means(self, kmeans, name, data, labels):
         """Benchmark to evaluate the KMeans initialization methods.
