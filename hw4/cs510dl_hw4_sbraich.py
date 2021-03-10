@@ -66,9 +66,7 @@ class Cluster():
         self.labels = []
         for index in range(0, 10):
             label_indices = np.argwhere(labels == index)[:100]
-            #self.data.extend(data[label_indices].ravel())
             self.data.extend(data[label_indices.ravel()])
-            #self.data.append(data[label_indices])
             self.labels.extend(np.full(shape=100, fill_value=index))
 
         self.data = np.array(self.data)
@@ -76,13 +74,10 @@ class Cluster():
 
         self.data, self.labels = utils.shuffle(self.data, self.labels)
 
-        #(self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
         (self.n_samples, self.n_features) = self.data.shape
         self.n_digits = np.unique(self.labels).size
-        # (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
 
         print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
-
 
     def bench_k_means(self, kmeans, name, data, labels):
         """Benchmark to evaluate the KMeans initialization methods.
