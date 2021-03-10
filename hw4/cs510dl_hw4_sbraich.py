@@ -40,67 +40,46 @@ class Cluster():
     def __init__(self) -> None:
         self.bind_data()
 
+    # def bind_data(self) -> None:
+    #
+    #     self.data, self.labels = load_digits(return_X_y=True)
+    #     (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
+    #
+    #     data = []
+    #     labels = []
+    #     for index in range(0, 10):
+    #         # label_indices = np.argwhere(self.labels == index)[:100]
+    #         label_indices = np.argwhere(self.labels == index)[:100]
+    #         data.extend(self.data[label_indices])
+    #         labels.extend(np.full(shape=100, fill_value=index))
+    #
+    #     data = np.array(data)
+    #     labels = np.array(labels)
+    #
+    #     data, labels = utils.shuffle(data, labels)
+
     def bind_data(self) -> None:
 
-        # transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        #
-        # self.data_test = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-        # self.data_train = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-        #
-        # # scale the training data (for faster testing of train)
-        # if tiny:
-        #     self.data_test  = torch.utils.data.Subset(self.data_test, range(1000))
-        #     self.data_train = torch.utils.data.Subset(self.data_train, range(6000))
-        # self.test_loader  = torch.utils.data.DataLoader(dataset=self.data_test,  batch_size=batch_size, shuffle=False, num_workers=num_workers)
-        # self.train_loader = torch.utils.data.DataLoader(dataset=self.data_train, batch_size=batch_size, shuffle=True,  num_workers=num_workers)
+        data, labels = load_digits(return_X_y=True)
 
-        self.data, self.labels = load_digits(return_X_y=True)
-        (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
-
-        # self.data, self.labels = load_digits(return_X_y=True)
-        # (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
-        # X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
-
-        # data = np.empty([1000, self.data.shape[1]])
-        # for index in range(0, 9):
-        #     label_indices = np.argwhere(self.labels == index)[:100]
-        #     np.append(data, [self.data[i] for i in label_indices])
-
-        # kinda works
-        # data = np.empty(shape=[1000, self.data.shape[1]], dtype=float)
-        # labels = np.empty(shape=1000, dtype=int)
-        # for index in range(0, 10):
-        #     # label_indices = np.argwhere(self.labels == index)[:100]
-        #     label_indices = np.argwhere(self.labels == index)
-        #     np.append(data, self.data[label_indices])
-        #     np.append(labels, np.full(shape=100, fill_value=index))
-
-        # data = np.empty(shape=[1000, self.data.shape[1]], dtype=float)
-        # labels = np.empty(shape=1000, dtype=int)
-
-        # data = []
-        # labels = []
-        # for index in range(0, 10):
-        #     # label_indices = np.argwhere(self.labels == index)[:100]
-        #     label_indices = np.argwhere(self.labels == index)
-        #     data.append(self.data[label_indices])
-        #     labels.append(np.full(shape=100, fill_value=index))
-
-        data = []
-        labels = []
+        self.data = []
+        self.labels = []
         for index in range(0, 10):
-            # label_indices = np.argwhere(self.labels == index)[:100]
-            label_indices = np.argwhere(self.labels == index)[:100]
-            data.extend(self.data[label_indices])
-            labels.extend(np.full(shape=100, fill_value=index))
+            label_indices = np.argwhere(labels == index)[:100]
+            #self.data.extend(data[label_indices].ravel())
+            self.data.extend(data[label_indices.ravel()])
+            #self.data.append(data[label_indices])
+            self.labels.extend(np.full(shape=100, fill_value=index))
 
-        data = np.array(data)
-        labels = np.array(labels)
+        self.data = np.array(self.data)
+        self.labels = np.array(self.labels)
 
-        data, labels = utils.shuffle(data, labels)
-        # [ blah for x in self.labels[i] for  ]
-        # [ index for index in self.labels if self.labels == 0]
+        self.data, self.labels = utils.shuffle(self.data, self.labels)
 
+        #(self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
+        (self.n_samples, self.n_features) = self.data.shape
+        self.n_digits = np.unique(self.labels).size
+        # (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
 
         print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
