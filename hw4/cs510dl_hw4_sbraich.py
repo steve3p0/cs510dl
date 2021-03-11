@@ -27,6 +27,8 @@ from time import time
 from sklearn import metrics
 from sklearn import utils
 from sklearn.datasets import load_digits
+from sklearn.datasets import fetch_openml
+# from sklearn.datasets import fetch_mldata
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
@@ -40,27 +42,15 @@ class Cluster():
     def __init__(self) -> None:
         self.bind_data()
 
-    # def bind_data(self) -> None:
-    #
-    #     self.data, self.labels = load_digits(return_X_y=True)
-    #     (self.n_samples, self.n_features), self.n_digits = self.data.shape, np.unique(self.labels).size
-    #
-    #     data = []
-    #     labels = []
-    #     for index in range(0, 10):
-    #         # label_indices = np.argwhere(self.labels == index)[:100]
-    #         label_indices = np.argwhere(self.labels == index)[:100]
-    #         data.extend(self.data[label_indices])
-    #         labels.extend(np.full(shape=100, fill_value=index))
-    #
-    #     data = np.array(data)
-    #     labels = np.array(labels)
-    #
-    #     data, labels = utils.shuffle(data, labels)
-
     def bind_data(self) -> None:
 
-        data, labels = load_digits(return_X_y=True)
+        # data, labels = load_digits(return_X_y=True)
+        # X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        labels = labels.astype(float)
+        # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
+        # data, labels = mnist.data, mnist.target.astype(int)
+
 
         self.data = []
         self.labels = []
