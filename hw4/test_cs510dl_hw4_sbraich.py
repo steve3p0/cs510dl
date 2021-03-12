@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 from cs510dl_hw4_sbraich import Cluster
+from cs510dl_hw4_sbraich import Autoencoder
+
 
 class TestCluster(TestCase):
 
@@ -20,3 +22,9 @@ class TestCluster(TestCase):
         cluster = Cluster()
         cluster.evaluate()
         cluster.visualize()
+
+
+class TestAutoencoder(TestCase):
+    def test_cluster_features(self):
+        ae = Autoencoder()
+        ae.cluster_features()

@@ -20,6 +20,8 @@ Sources:
    https://stackabuse.com/k-means-clustering-with-scikit-learn/
    Transpose Convolutions and Autoencoders
    https://www.cs.toronto.edu/~lczhang/360/lec/w05/autoencoder.html
+
+
 """
 
 import numpy as np
@@ -39,8 +41,12 @@ import matplotlib.pyplot as plt
 
 class Cluster():
 
-    def __init__(self) -> None:
-        self.bind_data()
+    def __init__(self, data=None, labels=None) -> None:
+        if data is None:
+            self.bind_data()
+        else:
+            self.data = data
+            self.labels = labels
 
     def bind_data(self) -> None:
 
@@ -203,3 +209,141 @@ class Cluster():
         plt.xticks(())
         plt.yticks(())
         plt.show()
+
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+# import matplotlib.pyplot as plt
+from torchvision import datasets, transforms
+
+# mnist_data = datasets.MNIST('data', train=True, download=True, transform=transforms.ToTensor())
+# mnist_data = list(mnist_data)[:4096]
+
+class Autoencoder(nn.Module):
+    def __init__(self):
+        self.bind_data()
+
+        super(Autoencoder, self).__init__()
+        self.encoder = nn.Sequential( # like the Composition layer you built
+            nn.Conv2d(1, 16, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, 7)
+        )
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(64, 32, 7),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(16, 1, 3, stride=2, padding=1, output_padding=1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+    def bind_data(self) -> None:
+
+        data, labels = load_digits(return_X_y=True)
+        # X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        # data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        labels = labels.astype(float)
+        # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
+        # data, labels = mnist.data, mnist.target.astype(int)
+
+        self.data = []
+        self.labels = []
+        for index in range(0, 10):
+            label_indices = np.argwhere(labels == index)[:100]
+            self.data.extend(data[label_indices.ravel()])
+            self.labels.extend(np.full(shape=100, fill_value=index))
+
+        self.data = np.array(self.data)
+        self.labels = np.array(self.labels)
+
+        self.data, self.labels = utils.shuffle(self.data, self.labels)
+
+        (self.n_samples, self.n_features) = self.data.shape
+        self.n_digits = np.unique(self.labels).size
+
+        print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
+
+
+
+    def fit(self, model, num_epochs=5, batch_size=64, learning_rate=1e-3):
+        self.epochs = num_epochs
+
+        torch.manual_seed(42)
+        criterion = nn.MSELoss()  # mean square error loss
+        optimizer = torch.optim.Adam(model.parameters(),
+                                     lr=learning_rate,
+                                     weight_decay=1e-5)  # <--
+
+        # data, labels = load_digits(return_X_y=True)
+        # mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
+        # mnist_data = list(mnist_data)[:4096]
+
+        # train_loader = torch.utils.data.DataLoader(mnist_data,
+        #                                            batch_size=batch_size,
+        #                                            shuffle=True)
+
+        train_loader = torch.utils.data.DataLoader(self.data,
+                                                   batch_size=batch_size,
+                                                   shuffle=True)
+
+        outputs = []
+        for epoch in range(num_epochs):
+            for data in train_loader:
+                # img, _ = data
+                img = data
+
+                recon = model(img)
+                loss = criterion(recon, img)
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+
+            print('Epoch:{}, Loss:{:.4f}'.format(epoch + 1, float(loss)))
+            outputs.append((epoch, img, recon), )
+        return outputs
+
+    def cluster_features(self):
+        model = Autoencoder()
+        max_epochs = 20
+        outputs = self.fit(model, num_epochs=max_epochs)
+
+        cluster = Cluster(data=outputs)
+        cluster.evaluate()
+        cluster.visualize()
+
+
+        # outputs, labels
+
+        # create confusion
+
+
+
+        #
+        #
+        #
+        # max_epochs = self.epochs
+        #
+        # for k in range(0, max_epochs, 5):
+        #     plt.figure(figsize=(9, 2))
+        #     imgs = outputs[k][1].detach().numpy()
+        #     recon = outputs[k][2].detach().numpy()
+        #     for i, item in enumerate(imgs):
+        #         if i >= 9: break
+        #         plt.subplot(2, 9, i + 1)
+        #         plt.imshow(item[0])
+        #
+        #     for i, item in enumerate(recon):
+        #         if i >= 9: break
+        #         plt.subplot(2, 9, 9 + i + 1)
+        #         plt.imshow(item[0])
+
