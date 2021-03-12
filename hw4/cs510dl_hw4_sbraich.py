@@ -44,9 +44,9 @@ class Cluster():
 
     def bind_data(self) -> None:
 
-        # data, labels = load_digits(return_X_y=True)
+        data, labels = load_digits(return_X_y=True)
         # X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
-        data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        # data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
         labels = labels.astype(float)
         # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
         # data, labels = mnist.data, mnist.target.astype(int)
