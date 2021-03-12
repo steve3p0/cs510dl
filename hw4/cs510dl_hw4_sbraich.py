@@ -113,6 +113,20 @@ class Cluster():
                             "\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}")
         print(formatter_result.format(*results))
 
+        # Compute confusion matrix
+        from sklearn.metrics import confusion_matrix
+        #cm = confusion_matrix(truth, k_labels_matched)
+        cm = confusion_matrix(labels, estimator[-1].labels_)
+
+        # Plot confusion matrix
+        plt.imshow(X=cm, interpolation='none', cmap='Blues')
+        for (i, j), z in np.ndenumerate(cm):
+            plt.text(j, i, z, ha='center', va='center')
+        plt.title(f"{name}")
+        plt.xlabel("kmeans label")
+        plt.ylabel("truth label")
+        plt.show()
+
     def evaluate(self):
         # %%
         # Run the benchmark
@@ -189,8 +203,3 @@ class Cluster():
         plt.xticks(())
         plt.yticks(())
         plt.show()
-
-
-cluster = Cluster()
-cluster.evaluate()
-cluster.visualize()
