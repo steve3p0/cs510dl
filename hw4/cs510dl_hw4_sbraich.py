@@ -299,14 +299,15 @@ class Autoencoder(nn.Module):
         mnist_data = datasets.MNIST('./data', train=True, download=False, transform=transforms.ToTensor())
         # mnist_data = list(mnist_data)[:4096]
 
+
         #train_loader = torch.utils.data.DataLoader(mnist_data,  batch_size=args.batch_size, shuffle=True, **kwargs)
         train_loader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size, shuffle=True)
 
         outputs = []
         for epoch in range(num_epochs):
             for data in train_loader:
-                # img, _ = data
-                img = data
+                img, _ = data
+                # img = data
 
                 recon = model(img)
                 loss = criterion(recon, img)
