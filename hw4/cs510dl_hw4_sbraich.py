@@ -38,6 +38,16 @@ from sklearn.decomposition import PCA
 from sklearn.datasets import fetch_openml
 import matplotlib.pyplot as plt
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision import datasets, transforms
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(f"Type of Machine: {device}")
+
 
 class Cluster():
 
@@ -211,13 +221,6 @@ class Cluster():
         plt.show()
 
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-# import matplotlib.pyplot as plt
-from torchvision import datasets, transforms
-
 # mnist_data = datasets.MNIST('data', train=True, download=True, transform=transforms.ToTensor())
 # mnist_data = list(mnist_data)[:4096]
 
@@ -274,15 +277,13 @@ class Autoencoder(nn.Module):
         print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
 
-
     def fit(self, model, num_epochs=5, batch_size=64, learning_rate=1e-3):
         self.epochs = num_epochs
 
+        model.to(device)
         torch.manual_seed(42)
         criterion = nn.MSELoss()  # mean square error loss
-        optimizer = torch.optim.Adam(model.parameters(),
-                                     lr=learning_rate,
-                                     weight_decay=1e-5)  # <--
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)  # <--
 
         # data, labels = load_digits(return_X_y=True)
         # mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
@@ -307,6 +308,7 @@ class Autoencoder(nn.Module):
         for epoch in range(num_epochs):
             for data in train_loader:
                 img, _ = data
+                img = img.to(device)
                 # img = data
 
                 recon = model(img)
