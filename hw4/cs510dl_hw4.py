@@ -12,7 +12,7 @@ Take all these 1,000 images and run them through a k-means clustering algorithm 
 can use the scikit-learn library.
 
 Sources:
-   sckikit-learn 2.3.2 K-means
+   scikit-learn 2.3.2 K-means
    https://scikit-learn.org/stable/modules/clustering.html#k-means
    A demo of K-Means clustering on the handwritten digits data
    https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_digits.html
@@ -20,8 +20,6 @@ Sources:
    https://stackabuse.com/k-means-clustering-with-scikit-learn/
    Transpose Convolutions and Autoencoders
    https://www.cs.toronto.edu/~lczhang/360/lec/w05/autoencoder.html
-
-
 """
 
 import numpy as np
@@ -57,6 +55,15 @@ class Cluster():
         else:
             self.data = data
             self.labels = labels
+            self.n_samples = 10000
+            self.n_features = 64
+            self.n_digits = 10
+            # 1000, 64
+            # (self.n_samples, self.n_features) = self.data.shape
+            # # 10
+            # self.n_digits = np.unique(self.labels).size
+
+            print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
     def bind_data(self) -> None:
 
@@ -104,6 +111,11 @@ class Cluster():
             supervision.
         """
         t0 = time()
+        # estimator = make_pipeline(StandardScaler(), kmeans).fit(data)
+        # estimator = make_pipeline(StandardScaler(), kmeans).fit(data.cpu())
+        # data = data.cpu().detach().numpy()
+        # data = data.detach().numpy()
+        # data = data.numpy()
         estimator = make_pipeline(StandardScaler(), kmeans).fit(data)
         fit_time = time() - t0
         results = [name, fit_time, estimator[-1].inertia_]
@@ -221,10 +233,6 @@ class Cluster():
         plt.yticks(())
         plt.show()
 
-
-# mnist_data = datasets.MNIST('data', train=True, download=True, transform=transforms.ToTensor())
-# mnist_data = list(mnist_data)[:4096]
-
 class Autoencoder(nn.Module):
     def __init__(self):
         self.bind_data()
@@ -256,9 +264,6 @@ class Autoencoder(nn.Module):
         # data, labels = load_digits(return_X_y=True)
         mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
         self.mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
-        # mnist_data = list(mnist_data)[:4096]
-        # mnist_data = torch.utils.data.Subset(mnist_data, range(10000))
-        # self.mnist_data = torch.utils.data.Subset(mnist_data, range(10000))
 
         mnist_data = list(mnist_data)
 
@@ -274,55 +279,11 @@ class Autoencoder(nn.Module):
             self.data.extend(data[label_indices.ravel()])
             self.labels.extend(np.full(shape=1000, fill_value=index))
 
-        # print(f"self.data length: {len(self.data)}")
-        # print(f"self.labels length: {len(self.labels)}")
-
         self.data, self.labels = utils.shuffle(self.data, self.labels)
-
-        # # 1000, 64
-        # (self.n_samples, self.n_features) = self.data.shape
-        # # 10
-        # self.n_digits = np.unique(self.labels).size
-        #
-        # print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
         self.n_samples = 10000
         self.n_features = 64
         self.n_digits = 10
-
-        # if data is None:
-        #     data, labels = load_digits(return_X_y=True)
-        #     # X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
-        #     # data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
-        #     labels = labels.astype(float)
-        #     # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
-        #     # data, labels = mnist.data, mnist.target.astype(int)
-        #
-        # self.data = []
-        # self.labels = []
-        # for index in range(0, 10):
-        #     label_indices = np.argwhere(labels == index)[:100]
-        #     self.data.extend(data[label_indices.ravel()])
-        #     self.labels.extend(np.full(shape=100, fill_value=index))
-        #
-        # self.data = np.array(self.data)
-        # self.labels = np.array(self.labels)
-        #
-        # # self.data, self.labels = utils.shuffle(self.data, self.labels)
-        # #
-        # # (self.n_samples, self.n_features) = self.data.shape
-        # # self.n_digits = np.unique(self.labels).size
-        # #
-        # # print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
-        # #
-        # # mnist_data = datasets.MNIST('./data', train=True, download=False, transform=transforms.ToTensor())
-        # # Cut the data down to 1,000 inmages per 10 classes
-        #
-        # # mnist_data = list(mnist_data)[:4096]
-        #
-        # #train_loader = torch.utils.data.DataLoader(mnist_data,  batch_size=args.batch_size, shuffle=True, **kwargs)
-        # train_loader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size, shuffle=True)
-
 
     def fit(self, model, num_epochs=5, batch_size=64, learning_rate=1e-3):
         self.epochs = num_epochs
@@ -356,38 +317,4 @@ class Autoencoder(nn.Module):
             outputs.append((epoch, images, recon), )
         return outputs
 
-    # def cluster_features(self):
-    #     model = Autoencoder()
-    #     max_epochs = 20
-    #     outputs = self.fit(model, num_epochs=max_epochs)
-    #
-    #     cluster = Cluster(data=outputs, labels=self.labels)
-    #     cluster.evaluate()
-    #     cluster.visualize()
-
-
-        # outputs, labels
-
-        # create confusion
-
-
-
-        #
-        #
-        #
-        # max_epochs = self.epochs
-        #
-        # for k in range(0, max_epochs, 5):
-        #     plt.figure(figsize=(9, 2))
-        #     imgs = outputs[k][1].detach().numpy()
-        #     recon = outputs[k][2].detach().numpy()
-        #     for i, item in enumerate(imgs):
-        #         if i >= 9: break
-        #         plt.subplot(2, 9, i + 1)
-        #         plt.imshow(item[0])
-        #
-        #     for i, item in enumerate(recon):
-        #         if i >= 9: break
-        #         plt.subplot(2, 9, 9 + i + 1)
-        #         plt.imshow(item[0])
 
