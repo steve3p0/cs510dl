@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from cs510dl_hw4_sbraich import Cluster
-from cs510dl_hw4_sbraich import Autoencoder
+from cs510dl_hw4 import Cluster
+from cs510dl_hw4 import Autoencoder
 
 
 class TestCluster(TestCase):
