@@ -27,25 +27,17 @@ from time import time
 from sklearn import metrics
 from sklearn import utils
 from sklearn.datasets import load_digits
-from sklearn.datasets import fetch_openml
-# from sklearn.datasets import fetch_mldata
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.datasets import fetch_openml
 import matplotlib.pyplot as plt
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from torchvision import datasets, transforms
-
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f"Type of Machine: {device}")
-
 
 class Cluster():
 
@@ -58,11 +50,6 @@ class Cluster():
             self.n_samples = 10000
             self.n_features = 64
             self.n_digits = 10
-            # 1000, 64
-            # (self.n_samples, self.n_features) = self.data.shape
-            # # 10
-            # self.n_digits = np.unique(self.labels).size
-
             print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
     def bind_data(self) -> None:
@@ -111,11 +98,6 @@ class Cluster():
             supervision.
         """
         t0 = time()
-        # estimator = make_pipeline(StandardScaler(), kmeans).fit(data)
-        # estimator = make_pipeline(StandardScaler(), kmeans).fit(data.cpu())
-        # data = data.cpu().detach().numpy()
-        # data = data.detach().numpy()
-        # data = data.numpy()
         estimator = make_pipeline(StandardScaler(), kmeans).fit(data)
         fit_time = time() - t0
         results = [name, fit_time, estimator[-1].inertia_]
