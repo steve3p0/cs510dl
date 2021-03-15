@@ -57,6 +57,15 @@ class Cluster():
         else:
             self.data = data
             self.labels = labels
+            self.n_samples = 10000
+            self.n_features = 64
+            self.n_digits = 10
+            # 1000, 64
+            # (self.n_samples, self.n_features) = self.data.shape
+            # # 10
+            # self.n_digits = np.unique(self.labels).size
+
+            print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
     def bind_data(self) -> None:
 
@@ -104,6 +113,11 @@ class Cluster():
             supervision.
         """
         t0 = time()
+        # estimator = make_pipeline(StandardScaler(), kmeans).fit(data)
+        # estimator = make_pipeline(StandardScaler(), kmeans).fit(data.cpu())
+        # data = data.cpu().detach().numpy()
+        # data = data.detach().numpy()
+        # data = data.numpy()
         estimator = make_pipeline(StandardScaler(), kmeans).fit(data)
         fit_time = time() - t0
         results = [name, fit_time, estimator[-1].inertia_]
