@@ -67,7 +67,6 @@ class Cluster():
         # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
         # data, labels = mnist.data, mnist.target.astype(int)
 
-
         self.data = []
         self.labels = []
         for index in range(0, 10):
@@ -80,7 +79,9 @@ class Cluster():
 
         self.data, self.labels = utils.shuffle(self.data, self.labels)
 
+        # 1000, 64
         (self.n_samples, self.n_features) = self.data.shape
+        # 10
         self.n_digits = np.unique(self.labels).size
 
         print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
@@ -226,7 +227,7 @@ class Cluster():
 
 class Autoencoder(nn.Module):
     def __init__(self):
-        # self.bind_data()
+        self.bind_data()
 
         super(Autoencoder, self).__init__()
         self.encoder = nn.Sequential( # like the Composition layer you built
@@ -250,31 +251,77 @@ class Autoencoder(nn.Module):
         x = self.decoder(x)
         return x
 
-    def bind_data(self) -> None:
+    def bind_data(self, data=None, labels=None) -> None:
 
-        data, labels = load_digits(return_X_y=True)
-        # X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
-        # data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
-        labels = labels.astype(float)
-        # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
-        # data, labels = mnist.data, mnist.target.astype(int)
+        # data, labels = load_digits(return_X_y=True)
+        mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
+        self.mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
+        # mnist_data = list(mnist_data)[:4096]
+        # mnist_data = torch.utils.data.Subset(mnist_data, range(10000))
+        # self.mnist_data = torch.utils.data.Subset(mnist_data, range(10000))
+
+        mnist_data = list(mnist_data)
+
+        # self.data = mnist_data
+        data, labels = list(map(list, zip(*mnist_data)))
+        data = np.array(data)
+        labels = np.array(labels)
 
         self.data = []
         self.labels = []
         for index in range(0, 10):
-            label_indices = np.argwhere(labels == index)[:100]
+            label_indices = np.argwhere(labels == index)[:1000]
             self.data.extend(data[label_indices.ravel()])
-            self.labels.extend(np.full(shape=100, fill_value=index))
+            self.labels.extend(np.full(shape=1000, fill_value=index))
 
-        self.data = np.array(self.data)
-        self.labels = np.array(self.labels)
+        # print(f"self.data length: {len(self.data)}")
+        # print(f"self.labels length: {len(self.labels)}")
 
         self.data, self.labels = utils.shuffle(self.data, self.labels)
 
-        (self.n_samples, self.n_features) = self.data.shape
-        self.n_digits = np.unique(self.labels).size
+        # # 1000, 64
+        # (self.n_samples, self.n_features) = self.data.shape
+        # # 10
+        # self.n_digits = np.unique(self.labels).size
+        #
+        # print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
 
-        print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
+        self.n_samples = 10000
+        self.n_features = 64
+        self.n_digits = 10
+
+        # if data is None:
+        #     data, labels = load_digits(return_X_y=True)
+        #     # X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        #     # data, labels = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+        #     labels = labels.astype(float)
+        #     # mnist = fetch_openml(data_id=554, return_X_y=True, as_frame=False)
+        #     # data, labels = mnist.data, mnist.target.astype(int)
+        #
+        # self.data = []
+        # self.labels = []
+        # for index in range(0, 10):
+        #     label_indices = np.argwhere(labels == index)[:100]
+        #     self.data.extend(data[label_indices.ravel()])
+        #     self.labels.extend(np.full(shape=100, fill_value=index))
+        #
+        # self.data = np.array(self.data)
+        # self.labels = np.array(self.labels)
+        #
+        # # self.data, self.labels = utils.shuffle(self.data, self.labels)
+        # #
+        # # (self.n_samples, self.n_features) = self.data.shape
+        # # self.n_digits = np.unique(self.labels).size
+        # #
+        # # print(f"# digits: {self.n_digits}; # samples: {self.n_samples}; # features {self.n_features}")
+        # #
+        # # mnist_data = datasets.MNIST('./data', train=True, download=False, transform=transforms.ToTensor())
+        # # Cut the data down to 1,000 inmages per 10 classes
+        #
+        # # mnist_data = list(mnist_data)[:4096]
+        #
+        # #train_loader = torch.utils.data.DataLoader(mnist_data,  batch_size=args.batch_size, shuffle=True, **kwargs)
+        # train_loader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size, shuffle=True)
 
 
     def fit(self, model, num_epochs=5, batch_size=64, learning_rate=1e-3):
@@ -285,50 +332,38 @@ class Autoencoder(nn.Module):
         criterion = nn.MSELoss()  # mean square error loss
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)  # <--
 
-        # data, labels = load_digits(return_X_y=True)
-        # mnist_data = datasets.MNIST('./data', train=True, download=True, transform=transforms.ToTensor())
-        # mnist_data = list(mnist_data)[:4096]
-
-        # train_loader = torch.utils.data.DataLoader(mnist_data,
-        #                                            batch_size=batch_size,
-        #                                            shuffle=True)
-
-        # train_loader = torch.utils.data.DataLoader(self.data,
-        #                                            batch_size=batch_size,
-        #                                            shuffle=True)
-
-        mnist_data = datasets.MNIST('./data', train=True, download=False, transform=transforms.ToTensor())
-        # mnist_data = list(mnist_data)[:4096]
-
-
-        #train_loader = torch.utils.data.DataLoader(mnist_data,  batch_size=args.batch_size, shuffle=True, **kwargs)
-        train_loader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size, shuffle=True)
+        train_loader = torch.utils.data.DataLoader(self.mnist_data,
+                                                   batch_size=batch_size,
+                                                   shuffle=True)
 
         outputs = []
         for epoch in range(num_epochs):
             for data in train_loader:
-                img, _ = data
-                img = img.to(device)
+                images, labels = data
+                images = images.to(device)
+                labels = labels.to(device)
                 # img = data
 
-                recon = model(img)
-                loss = criterion(recon, img)
+                recon = model(images)
+                loss = criterion(recon, images)
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
 
             print('Epoch:{}, Loss:{:.4f}'.format(epoch + 1, float(loss)))
-            outputs.append((epoch, img, recon), )
+
+            # added labels to this below?
+            outputs.append((epoch, images, recon), )
         return outputs
 
-    def cluster_features(self):
-        model = Autoencoder()
-        max_epochs = 20
-        outputs = self.fit(model, num_epochs=max_epochs)
-
-        cluster = Cluster(data=outputs)
-        cluster.evaluate()
-        cluster.visualize()
+    # def cluster_features(self):
+    #     model = Autoencoder()
+    #     max_epochs = 20
+    #     outputs = self.fit(model, num_epochs=max_epochs)
+    #
+    #     cluster = Cluster(data=outputs, labels=self.labels)
+    #     cluster.evaluate()
+    #     cluster.visualize()
 
 
         # outputs, labels

@@ -26,5 +26,10 @@ class TestCluster(TestCase):
 
 class TestAutoencoder(TestCase):
     def test_cluster_features(self):
-        ae = Autoencoder()
-        ae.cluster_features()
+        model = Autoencoder()
+        max_epochs = 2
+        outputs = model.fit(model, num_epochs=max_epochs)
+
+        cluster = Cluster(data=outputs, labels=model.labels)
+        cluster.evaluate()
+        cluster.visualize()
