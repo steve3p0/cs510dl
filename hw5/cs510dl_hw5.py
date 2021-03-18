@@ -220,8 +220,8 @@ Let’s define some inputs for the run:
 # dataroot = "data_1k/celeba"
 # dataroot = "data_10k/celeba"
 # dataroot = "data_20k/celeba"
-# dataroot = "data_100k/celeba"
-dataroot = "data/celeba"
+dataroot = "data_100k/celeba"
+# dataroot = "data/celeba"
 print(f"dataroot: {dataroot}")
 
 # Number of workers for dataloader
@@ -247,7 +247,7 @@ ngf = 64
 ndf = 64
 
 # Number of training epochs
-num_epochs = 5
+num_epochs = 20
 
 # Learning rate for optimizers
 lr = 0.0002
